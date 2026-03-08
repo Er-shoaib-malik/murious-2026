@@ -106,6 +106,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   cursor: none !important;
+  height: 100dvh;
 }
 
 a,
