@@ -236,7 +236,7 @@
                   type="checkbox"
                   name="events"
                   value="REEL RUMBLE"
-                  data-fee="150"
+                  data-fee="100"
                 />
                 <div class="event-card-inner">
                   <span class="event-icon"
@@ -247,6 +247,39 @@
                 </div>
                 <div class="event-check">✓</div>
               </label>
+              <label class="event-card" data-event="FIFA" data-fee="80">
+                <input
+                  type="checkbox"
+                  name="events"
+                  value="FIFA"
+                  data-fee="80"
+                />
+                <div class="event-card-inner">
+                  <span class="event-icon"
+                    ><img src="images/reel.png" class="event-img"
+                  /></span>
+                  <span class="event-name">FIFA</span>
+                  <span class="event-fee">₹80 per head</span>
+                </div>
+                <div class="event-check">✓</div>
+              </label>
+              <label class="event-card" data-event="Tekken" data-fee="150">
+                <input
+                  type="checkbox"
+                  name="events"
+                  value="Tekken"
+                  data-fee="80"
+                />
+                <div class="event-card-inner">
+                  <span class="event-icon"
+                    ><img src="images/reel.png" class="event-img"
+                  /></span>
+                  <span class="event-name">Tekken</span>
+                  <span class="event-fee">₹80 per head</span>
+                </div>
+                <div class="event-check">✓</div>
+              </label>
+
 
               <label
                 class="event-card"
@@ -328,22 +361,6 @@
                 <div class="event-check">✓</div>
               </label>
 
-              <label class="event-card" data-event="E-SPORTS" data-fee="80">
-                <input
-                  type="checkbox"
-                  name="events"
-                  value="E-SPORTS"
-                  data-fee="80"
-                />
-                <div class="event-card-inner">
-                  <span class="event-icon"
-                    ><img src="images/console.png" class="event-img"
-                  /></span>
-                  <span class="event-name">E-SPORTS</span>
-                  <span class="event-fee">₹80</span>
-                </div>
-                <div class="event-check">✓</div>
-              </label>
 
               <label class="event-card" data-event="FRAME IT" data-fee="80">
                 <input
@@ -425,13 +442,7 @@
     </div>
 
     <script>
-      document.querySelectorAll('input[name="events"]').forEach((cb) => {
-        cb.addEventListener("change", function () {
-          document.querySelectorAll('input[name="events"]').forEach((x) => {
-            if (x !== this) x.checked = false;
-          });
-        });
-      });
+      // Removed restriction: allow multiple event selection
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
