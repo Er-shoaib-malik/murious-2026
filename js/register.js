@@ -120,24 +120,12 @@ if (participationType) {
 
 
 // ── Allow Only One Event ──
+// ── Allow Multiple Events ──
 eventCheckboxes.forEach((cb) => {
-
   cb.addEventListener("change", function () {
-
-    if (this.checked) {
-
-      eventCheckboxes.forEach((other) => {
-
-        if (other !== this) other.checked = false;
-
-      });
-
-    }
-
     updateFeeDisplay();
 
   });
-
 });
 
 
@@ -382,54 +370,56 @@ if (regForm) {
 
     const eventNames = selectedEvents.map((e) => e.name).join(", ");
 
-    try {
-
-      if (db) {
-
-        const batch = db.batch();
-
-        for (const ev of selectedEvents) {
-
-          const docRef = db.collection("registrations").doc();
-
-          batch.set(docRef, {
-
-            name: name,
-            email: email,
-            phone: phone,
-            college: college,
-            participationType: participation,
-            teamMembers: teamMembers,
-            event: ev.name,
-            fee: ev.fee,
-            totalPaid: totalFee,
-            transactionId: transactionId,
-            eventsInOrder: eventNames,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-
-          });
-
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: totalFee * 100,
+      currency: "INR",
+      name: "Murious 20.0",
+      description: eventNames + " Registration",
+      handler: async function (response) {
+        try {
+          if (db) {
+            // Save a single registration document with all events
+            await db.collection("registrations").add({
+              name: name,
+              email: email,
+              phone: phone,
+              college: college,
+              participationType: participation,
+              teamMembers: teamMembers,
+              events: selectedEvents.map(ev => ({ name: ev.name, fee: ev.fee })),
+              totalPaid: totalFee,
+              eventsInOrder: eventNames,
+              paymentId: response.razorpay_payment_id,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (err) {
+          console.error("Firestore save error:", err);
         }
-
-        await batch.commit();
-
-      }
-
-    } catch (err) {
-
-      console.error("Firestore save error:", err);
-
-    }
-
-    showLoading(false);
-
-    regForm.reset();
-
-    eventCheckboxes.forEach((cb) => (cb.checked = false));
-
-    feeDisplay.style.display = "none";
-
-    showSuccessMsg();
+        showLoading(false);
+        regForm.reset();
+        eventCheckboxes.forEach((cb) => (cb.checked = false));
+        feeDisplay.style.display = "none";
+        showSuccessMsg();
+      },
+      modal: {
+        ondismiss: function () {
+          showLoading(false);
+          showErrorMsg("Payment was cancelled. Registration not completed.");
+        },
+      },
+      prefill: {
+        name: name,
+        email: email,
+        contact: phone,
+      },
+      theme: {
+        color: "#d4a853",
+      },
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
 
   });
 
