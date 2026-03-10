@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════
    MURIOUS 20.0 — Registration Page Script
-   Firebase + Razorpay Integration (Multi-Event)
+   Firebase Integration (Manual Payment Verification)
    ═══════════════════════════════════════════════════════ */
 
 // ── Firebase Config ──
@@ -13,8 +13,6 @@ const firebaseConfig = {
   appId: "1:1094190297812:web:007376a2e08b4ff7fb4141",
   measurementId: "G-36RTV9Y354",
 };
-
-const RAZORPAY_KEY = "rzp_live_SODKZII24hVdSO";
 
 let db = null;
 
@@ -35,13 +33,16 @@ function initFirebase() {
 
 // ── Generate Stars ──
 function generateStars() {
+
   const container = document.getElementById("starfield");
   if (!container) return;
 
   const count = Math.floor((window.innerWidth * window.innerHeight) / 1500);
 
   for (let i = 0; i < count; i++) {
+
     const star = document.createElement("div");
+
     star.className = "star" + (Math.random() > 0.92 ? " large" : "");
 
     star.style.left = Math.random() * 100 + "%";
@@ -52,14 +53,17 @@ function generateStars() {
 
     container.appendChild(star);
   }
+
 }
 
 
 // ── Generate Particles ──
 function generateParticles() {
+
   const body = document.body;
 
   for (let i = 0; i < 15; i++) {
+
     const p = document.createElement("div");
 
     p.className = "particle";
@@ -74,13 +78,14 @@ function generateParticles() {
     p.style.height = p.style.width;
 
     body.appendChild(p);
+
   }
+
 }
 
 
 // ── DOM Elements ──
 const regForm = document.getElementById("registerForm");
-const eventGrid = document.getElementById("eventGrid");
 const eventCheckboxes = document.querySelectorAll('input[name="events"]');
 
 const feeDisplay = document.getElementById("feeDisplay");
@@ -91,7 +96,6 @@ const regLoading = document.getElementById("regLoading");
 const regSuccess = document.getElementById("regSuccess");
 const regError = document.getElementById("regError");
 const regErrorMsg = document.getElementById("regErrorMsg");
-const registerBtn = document.getElementById("registerBtn");
 
 const participationType = document.getElementById("participationType");
 const teamSection = document.getElementById("teamSection");
@@ -99,6 +103,7 @@ const teamSection = document.getElementById("teamSection");
 
 // ── Show / Hide Team Members ──
 if (participationType) {
+
   participationType.addEventListener("change", function () {
 
     if (this.value === "team") {
@@ -108,7 +113,9 @@ if (participationType) {
     }
 
     updateFeeDisplay();
+
   });
+
 }
 
 
@@ -118,12 +125,17 @@ eventCheckboxes.forEach((cb) => {
   cb.addEventListener("change", function () {
 
     if (this.checked) {
+
       eventCheckboxes.forEach((other) => {
+
         if (other !== this) other.checked = false;
+
       });
+
     }
 
     updateFeeDisplay();
+
   });
 
 });
@@ -149,9 +161,11 @@ function getTeamMembers() {
       });
 
     }
+
   }
 
   return members;
+
 }
 
 
@@ -174,10 +188,11 @@ function getSelectedEvents() {
   });
 
   return selected;
+
 }
 
 
-// ── Calculate and display total fee ──
+// ── Calculate total fee ──
 function updateFeeDisplay() {
 
   const selected = getSelectedEvents();
@@ -219,32 +234,20 @@ function updateFeeDisplay() {
   }
 
   return { totalFee, count, events: selected };
+
 }
 
 
-// ── Clear invalid on input ──
-document.querySelectorAll(".form-group input").forEach((inp) => {
-
-  inp.addEventListener("input", () => {
-
-    inp.classList.remove("invalid");
-
-    updateFeeDisplay();
-
-  });
-
-});
-
-
-// ── Helper Functions ──
+// ── Helper UI Functions ──
 function showLoading(show) {
+
   if (regLoading) regLoading.classList.toggle("active", show);
+
 }
 
 function hideMessages() {
 
   if (regSuccess) regSuccess.classList.remove("active");
-
   if (regError) regError.classList.remove("active");
 
 }
@@ -252,7 +255,6 @@ function hideMessages() {
 function showSuccessMsg() {
 
   hideMessages();
-
   if (regSuccess) regSuccess.classList.add("active");
 
 }
@@ -262,7 +264,6 @@ function showErrorMsg(msg) {
   hideMessages();
 
   if (regErrorMsg) regErrorMsg.textContent = msg;
-
   if (regError) regError.classList.add("active");
 
 }
@@ -282,72 +283,58 @@ if (regForm) {
     const phone = document.getElementById("regPhone").value.trim();
     const college = document.getElementById("regCollege").value.trim();
 
+    const transactionId = document.getElementById("transactionId").value.trim();
+    const screenshot = document.getElementById("paymentScreenshot").files[0];
+
     const participation = participationType ? participationType.value : "single";
 
     const teamMembers = getTeamMembers();
 
     const { totalFee, count, events: selectedEvents } = updateFeeDisplay();
-    /* MAIN FORM VALIDATION */
 
-let valid = true;
+    let valid = true;
 
-const nameField = document.getElementById("regName");
-const emailField = document.getElementById("regEmail");
-const phoneField = document.getElementById("regPhone");
-const collegeField = document.getElementById("regCollege");
+    const nameField = document.getElementById("regName");
+    const emailField = document.getElementById("regEmail");
+    const phoneField = document.getElementById("regPhone");
+    const collegeField = document.getElementById("regCollege");
+    const transactionField = document.getElementById("transactionId");
+    const screenshotField = document.getElementById("paymentScreenshot");
 
-/* reset previous errors */
-[nameField,emailField,phoneField,collegeField].forEach(f=>{
-  f.classList.remove("invalid");
-});
+    [nameField,emailField,phoneField,collegeField,transactionField].forEach(f=>{
+      if(f) f.classList.remove("invalid");
+    });
 
-/* check empty */
+    if(!name){ nameField.classList.add("invalid"); valid=false; }
+    if(!email){ emailField.classList.add("invalid"); valid=false; }
+    if(!phone){ phoneField.classList.add("invalid"); valid=false; }
+    if(!college){ collegeField.classList.add("invalid"); valid=false; }
+    if(!transactionId){ transactionField.classList.add("invalid"); valid=false; }
 
-if(!name){
-  nameField.classList.add("invalid");
-  valid=false;
-}
+    if(!screenshot){
+      screenshotField.classList.add("invalid");
+      valid=false;
+    }
 
-if(!email){
-  emailField.classList.add("invalid");
-  valid=false;
-}
+    /* EMAIL VALIDATION */
 
-if(!phone){
-  phoneField.classList.add("invalid");
-  valid=false;
-}
+    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if(!college){
-  collegeField.classList.add("invalid");
-  valid=false;
-}
+    if(email && !emailRegex.test(email)){
+      emailField.classList.add("invalid");
+      showErrorMsg("Please enter a valid email.");
+      return;
+    }
 
-/* email format */
+    /* PHONE VALIDATION */
 
-const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(phone && !/^\d{10}$/.test(phone)){
+      phoneField.classList.add("invalid");
+      showErrorMsg("Phone number must be 10 digits.");
+      return;
+    }
 
-if(email && !emailRegex.test(email)){
-  emailField.classList.add("invalid");
-  showErrorMsg("Please enter a valid email.");
-  return;
-}
-
-/* phone format */
-
-if(phone && !/^\d{10}$/.test(phone)){
-  phoneField.classList.add("invalid");
-  showErrorMsg("Phone number must be 10 digits.");
-  return;
-}
-
-if(!valid){
-  showErrorMsg("Please fill all required fields.");
-  return;
-}
-
-
-    /* ── NEW TEAM MEMBER VALIDATION ── */
+    /* TEAM MEMBER VALIDATION */
 
     for (let i = 1; i <= 4; i++) {
 
@@ -355,29 +342,25 @@ if(!valid){
       const rollField = document.getElementById(`member${i}Roll`);
       const phoneField = document.getElementById(`member${i}Phone`);
 
-      const nameVal = nameField ? nameField.value.trim() : "";
-      const rollVal = rollField ? rollField.value.trim() : "";
-      const phoneVal = phoneField ? phoneField.value.trim() : "";
+      if(!nameField) continue;
 
-      if (nameVal || rollVal || phoneVal) {
+      nameField.classList.remove("invalid");
+      rollField.classList.remove("invalid");
+      phoneField.classList.remove("invalid");
 
-        if (!nameVal || !rollVal || !phoneVal) {
+      const n = nameField.value.trim();
+      const r = rollField.value.trim();
+      const p = phoneField.value.trim();
 
-          showErrorMsg(`Please complete all fields for Member ${i} or leave them empty.`);
+      if(n || r || p){
 
-          if (nameField) nameField.classList.add("invalid");
-          if (rollField) rollField.classList.add("invalid");
-          if (phoneField) phoneField.classList.add("invalid");
+        if(!n){ nameField.classList.add("invalid"); valid=false; }
+        if(!r){ rollField.classList.add("invalid"); valid=false; }
+        if(!p){ phoneField.classList.add("invalid"); valid=false; }
 
-          return;
-        }
-
-        if (!/^\d{10}$/.test(phoneVal)) {
-
+        if(p && !/^\d{10}$/.test(p)){
           phoneField.classList.add("invalid");
-
-          showErrorMsg(`Member ${i} phone must be a 10 digit number.`);
-
+          showErrorMsg(`Member ${i} phone must be 10 digits`);
           return;
         }
 
@@ -385,103 +368,68 @@ if(!valid){
 
     }
 
-
-    if (count === 0) {
+    if(count===0){
       showErrorMsg("Please select an event.");
       return;
     }
 
+    if(!valid){
+      showErrorMsg("Please fill all required fields.");
+      return;
+    }
 
     showLoading(true);
 
-
     const eventNames = selectedEvents.map((e) => e.name).join(", ");
 
+    try {
 
-    const options = {
+      if (db) {
 
-      key: RAZORPAY_KEY,
-      amount: totalFee * 100,
-      currency: "INR",
-      name: "Murious 20.0",
-      description: selectedEvents[0].name + " Registration",
+        const batch = db.batch();
 
-      handler: async function (response) {
+        for (const ev of selectedEvents) {
 
-        try {
+          const docRef = db.collection("registrations").doc();
 
-          if (db) {
+          batch.set(docRef, {
 
-            const batch = db.batch();
+            name: name,
+            email: email,
+            phone: phone,
+            college: college,
+            participationType: participation,
+            teamMembers: teamMembers,
+            event: ev.name,
+            fee: ev.fee,
+            totalPaid: totalFee,
+            transactionId: transactionId,
+            eventsInOrder: eventNames,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
 
-            for (const ev of selectedEvents) {
-
-              const docRef = db.collection("registrations").doc();
-
-              batch.set(docRef, {
-
-                name: name,
-                email: email,
-                phone: phone,
-                college: college,
-                participationType: participation,
-                teamMembers: teamMembers,
-                event: ev.name,
-                fee: ev.fee,
-                totalPaid: totalFee,
-                eventsInOrder: eventNames,
-                paymentId: response.razorpay_payment_id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-
-              });
-
-            }
-
-            await batch.commit();
-
-          }
-
-        } catch (err) {
-
-          console.error("Firestore save error:", err);
+          });
 
         }
 
-        showLoading(false);
+        await batch.commit();
 
-        regForm.reset();
+      }
 
-        eventCheckboxes.forEach((cb) => (cb.checked = false));
+    } catch (err) {
 
-        feeDisplay.style.display = "none";
+      console.error("Firestore save error:", err);
 
-        showSuccessMsg();
+    }
 
-      },
+    showLoading(false);
 
-      modal: {
-        ondismiss: function () {
-          showLoading(false);
-          showErrorMsg("Payment was cancelled. Registration not completed.");
-        },
-      },
+    regForm.reset();
 
-      prefill: {
-        name: name,
-        email: email,
-        contact: phone,
-      },
+    eventCheckboxes.forEach((cb) => (cb.checked = false));
 
-      theme: {
-        color: "#d4a853",
-      },
+    feeDisplay.style.display = "none";
 
-    };
-
-
-    const rzp = new Razorpay(options);
-
-    rzp.open();
+    showSuccessMsg();
 
   });
 
@@ -492,9 +440,7 @@ if(!valid){
 document.addEventListener("DOMContentLoaded", () => {
 
   initFirebase();
-
   generateStars();
-
   generateParticles();
 
 });
